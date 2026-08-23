@@ -2386,6 +2386,24 @@ button{
     text-align:right;
 }
 
+
+/* =====================================================
+   RATING SYSTEM CSS
+===================================================== */
+.rating-summary{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rating-stars,.rating-display .stars{color:#f59e0b;letter-spacing:1px;font-size:16px}
+.rating-number,.rating-display .score{font-weight:900;color:#171717}
+.rating-count,.rating-display .count{color:#888;font-size:12px}
+.rating-bar{display:flex;gap:4px;align-items:center;margin-top:10px}
+.rating-star-btn{border:none;background:transparent;color:#d1d5db;font-size:34px;padding:2px;line-height:1;cursor:pointer;transition:.2s}
+.rating-star-btn:hover,.rating-star-btn.active{color:#f59e0b;transform:scale(1.12)}
+.rating-star-btn:focus{outline:none}
+.rating-review{width:100%;min-height:90px;resize:vertical}
+.rating-order-box{margin-top:18px;padding:16px;border-radius:14px;background:#fff8f4;border:1px solid #ffe0d2}
+.rating-order-box h4{margin-bottom:4px}
+.rating-order-box p{color:#777;font-size:12px;margin-bottom:8px}
+.rating-empty{color:#999;font-size:12px}
+
 </style>
 
 </head>
@@ -3066,8 +3084,11 @@ button{
                 Rating
             </div>
 
-            <div class="stat-value">
-                ⭐ 4.9
+            <div
+                id="cRating"
+                class="stat-value"
+            >
+                ⭐ 0.0
             </div>
 
         </div>
@@ -3655,6 +3676,38 @@ button{
 </div>
 
 
+
+<!-- =====================================================
+     RATING MODAL
+===================================================== -->
+<div id="ratingModal" class="modal hidden">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeRatingModal()">×</button>
+        <h2>Rate Your Meal ⭐</h2>
+        <p id="ratingFoodName" class="modal-subtitle"></p>
+
+        <div class="form-group">
+            <label>Your Rating</label>
+            <div id="ratingStars" class="rating-bar">
+                <button class="rating-star-btn" type="button" onclick="selectRating(1)">★</button>
+                <button class="rating-star-btn" type="button" onclick="selectRating(2)">★</button>
+                <button class="rating-star-btn" type="button" onclick="selectRating(3)">★</button>
+                <button class="rating-star-btn" type="button" onclick="selectRating(4)">★</button>
+                <button class="rating-star-btn" type="button" onclick="selectRating(5)">★</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Review <span style="font-weight:500;color:#999;">(optional)</span></label>
+            <textarea id="ratingReview" class="rating-review" maxlength="300" placeholder="Tell us what you liked about the meal..."></textarea>
+        </div>
+
+        <button class="form-submit" onclick="submitRating()">
+            Submit Rating ⭐
+        </button>
+    </div>
+</div>
+
 <!-- =====================================================
      TOAST
 ===================================================== -->
@@ -3696,6 +3749,13 @@ let orders =
         )
     ) || [];
 
+let ratings =
+    JSON.parse(
+        localStorage.getItem(
+            "homeplates_ratings"
+        )
+    ) || [];
+
 
 let currentUser =
     JSON.parse(
@@ -3706,6 +3766,8 @@ let currentUser =
 
 
 let selectedFood = null;
+let selectedRatingOrder = null;
+let selectedRatingValue = 0;
 
 
 /* =====================================================
@@ -4347,6 +4409,217 @@ function previewFoodImage(event){
 }
 
 
+
+/* =====================================================
+   RATING SYSTEM
+===================================================== */
+
+function saveRatings(){
+    localStorage.setItem(
+        "homeplates_ratings",
+        JSON.stringify(ratings)
+    );
+}
+
+function getFoodRatings(foodId){
+    const list = ratings.filter(
+        rating => Number(rating.foodId) === Number(foodId)
+    );
+
+    const count = list.length;
+
+    const average = count
+        ? list.reduce(
+            (sum,rating) => sum + Number(rating.rating),
+            0
+          ) / count
+        : 0;
+
+    return {
+        average: Number(average.toFixed(1)),
+        count: count
+    };
+}
+
+function getRatingStars(value){
+    const rounded = Math.round(Number(value) || 0);
+    let stars = "";
+
+    for(let i = 1; i <= 5; i++){
+        stars += i <= rounded ? "★" : "☆";
+    }
+
+    return stars;
+}
+
+function ratingSummaryHTML(foodId){
+    const summary = getFoodRatings(foodId);
+
+    if(!summary.count){
+        return `
+            <div class="rating-summary">
+                <span class="rating-stars">☆☆☆☆☆</span>
+                <span class="rating-empty">No ratings yet</span>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="rating-summary">
+            <span class="rating-stars">${getRatingStars(summary.average)}</span>
+            <span class="rating-number">${summary.average}</span>
+            <span class="rating-count">
+                (${summary.count} ${summary.count === 1 ? "rating" : "ratings"})
+            </span>
+        </div>
+    `;
+}
+
+function hasUserRatedOrder(orderId){
+    return !!(
+        currentUser &&
+        ratings.some(
+            rating =>
+                rating.orderId === orderId &&
+                rating.customerId === currentUser.id
+        )
+    );
+}
+
+function openRatingModal(orderId){
+    const order = orders.find(
+        item => item.id === orderId
+    );
+
+    if(!order){
+        toast("Order not found.");
+        return;
+    }
+
+    if(!currentUser){
+        toast("Please login to rate a meal.");
+        return;
+    }
+
+    if(order.customerId !== currentUser.id){
+        toast("You can only rate your own orders.");
+        return;
+    }
+
+    if(order.status !== "DELIVERED"){
+        toast("You can rate the meal after delivery.");
+        return;
+    }
+
+    if(hasUserRatedOrder(order.id)){
+        toast("You have already rated this meal.");
+        return;
+    }
+
+    if(!order.foodId){
+        const matchedFood = foods.find(
+            food =>
+                food.name === order.foodName &&
+                food.providerId === order.providerId
+        );
+
+        if(matchedFood){
+            order.foodId = matchedFood.id;
+            saveDB();
+        }
+    }
+
+    selectedRatingOrder = order;
+    selectedRatingValue = 0;
+
+    document.getElementById("ratingFoodName").innerText =
+        order.foodName + " • " + order.providerName;
+
+    document.getElementById("ratingReview").value = "";
+
+    updateRatingStars();
+
+    document.getElementById("ratingModal")
+        .classList.remove("hidden");
+}
+
+function selectRating(value){
+    selectedRatingValue = Number(value);
+    updateRatingStars();
+}
+
+function updateRatingStars(){
+    document.querySelectorAll(
+        "#ratingStars .rating-star-btn"
+    ).forEach(
+        (button,index) => {
+            button.classList.toggle(
+                "active",
+                index < selectedRatingValue
+            );
+        }
+    );
+}
+
+function submitRating(){
+    if(!selectedRatingOrder || !currentUser){
+        toast("Please select an order.");
+        return;
+    }
+
+    if(selectedRatingValue < 1){
+        toast("Please choose a star rating.");
+        return;
+    }
+
+    if(hasUserRatedOrder(selectedRatingOrder.id)){
+        toast("You have already rated this meal.");
+        closeRatingModal();
+        return;
+    }
+
+    const review = document.getElementById(
+        "ratingReview"
+    ).value.trim();
+
+    ratings.push({
+        id:
+            "RT-" +
+            Date.now() +
+            "-" +
+            Math.floor(Math.random() * 1000),
+        orderId: selectedRatingOrder.id,
+        foodId: selectedRatingOrder.foodId,
+        foodName: selectedRatingOrder.foodName,
+        providerId: selectedRatingOrder.providerId,
+        providerName: selectedRatingOrder.providerName,
+        customerId: currentUser.id,
+        customerName: currentUser.name,
+        rating: selectedRatingValue,
+        review: review,
+        created: new Date().toLocaleString()
+    });
+
+    saveRatings();
+    closeRatingModal();
+
+    renderCustomerFoods();
+    renderCustomerOrders();
+    renderProviderFoods();
+    customerStats();
+    providerStats();
+
+    toast("⭐ Thank you! Your rating has been submitted.");
+}
+
+function closeRatingModal(){
+    document.getElementById("ratingModal")
+        .classList.add("hidden");
+
+    selectedRatingOrder = null;
+    selectedRatingValue = 0;
+}
+
 /* =====================================================
    CUSTOMER FOOD LIST
 ===================================================== */
@@ -4456,6 +4729,7 @@ function renderCustomerFoods(){
                             ${safe(food.description)}
                         </p>
 
+                        ${ratingSummaryHTML(food.id)}
 
                         <div class="food-bottom">
 
@@ -4649,6 +4923,9 @@ function confirmOrder(){
 
         providerName:
             selectedFood.providerName,
+
+        foodId:
+            selectedFood.id,
 
         foodName:
             selectedFood.name,
@@ -4971,6 +5248,59 @@ function customerOrderHTML(order){
 
             </div>
 
+
+            ${
+                order.status === "DELIVERED"
+                ?
+                `
+                <div class="rating-order-box">
+                    <h4>⭐ How was your meal?</h4>
+                    <p>Your feedback helps other customers choose great meals.</p>
+
+                    ${
+                        hasUserRatedOrder(order.id)
+                        ?
+                        `
+                        <div class="rating-display">
+                            <span class="stars">
+                                ${getRatingStars(
+                                    (
+                                        ratings.find(
+                                            rating =>
+                                                rating.orderId === order.id &&
+                                                rating.customerId === currentUser.id
+                                        ) || {}
+                                    ).rating || 0
+                                )}
+                            </span>
+                            <span class="score">
+                                ${
+                                    (
+                                        ratings.find(
+                                            rating =>
+                                                rating.orderId === order.id &&
+                                                rating.customerId === currentUser.id
+                                        ) || {}
+                                    ).rating || 0
+                                }/5
+                            </span>
+                        </div>
+                        `
+                        :
+                        `
+                        <button
+                            class="order-btn next"
+                            onclick="openRatingModal('${order.id}')"
+                        >
+                            ⭐ Rate This Meal
+                        </button>
+                        `
+                    }
+                </div>
+                `
+                :
+                ""
+            }
 
             ${
                 order.status !==
@@ -5595,6 +5925,8 @@ function renderProviderFoods(){
                             ${safe(food.description)}
                         </p>
 
+                        ${ratingSummaryHTML(food.id)}
+
 
                         <div class="food-bottom">
 
@@ -5865,6 +6197,36 @@ function customerStats(){
         "cMeals"
     ).innerText =
         foods.length;
+
+    const customerRatings =
+        ratings.filter(
+            rating =>
+                rating.customerId ===
+                currentUser.id
+        );
+
+    const customerAverage =
+        customerRatings.length
+        ?
+        (
+            customerRatings.reduce(
+                (sum,rating) =>
+                    sum + Number(rating.rating),
+                0
+            ) / customerRatings.length
+        ).toFixed(1)
+        :
+        "0.0";
+
+    const customerRatingElement =
+        document.getElementById(
+            "cRating"
+        );
+
+    if(customerRatingElement){
+        customerRatingElement.innerText =
+            "⭐ " + customerAverage;
+    }
 
 }
 
@@ -6199,6 +6561,22 @@ document
             )
     );
 
+
+
+/* =====================================================
+   RATING MODAL OVERLAY
+===================================================== */
+
+document.getElementById(
+    "ratingModal"
+)?.addEventListener(
+    "click",
+    function(event){
+        if(event.target === this){
+            closeRatingModal();
+        }
+    }
+);
 
 /* =====================================================
    AUTO LOGIN

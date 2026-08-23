@@ -1796,6 +1796,35 @@ button{
     line-height:1.5;
 }
 
+
+.food-safety-box{
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:12px;
+    background:#f8fbf7;
+    border:1px solid #e3eee1;
+    color:#536052;
+    font-size:11px;
+    line-height:1.55;
+}
+
+.food-safety-title{
+    font-weight:900;
+    color:#40533f;
+    margin-bottom:4px;
+}
+
+.food-safety-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px 12px;
+}
+
+.food-safety-note{
+    margin-top:4px;
+    color:#687466;
+}
+
 .food-home-meta{
     display:flex;
     align-items:center;
@@ -3615,9 +3644,42 @@ button{
                 id="foodQuantity"
                 type="number"
                 min="0"
-                max="1000"
-                placeholder="10"
+                placeholder="4"
             >
+            <small style="display:block;margin-top:6px;color:#777;line-height:1.4;">
+                Example home-cook meals are shown in small batches; enter the actual servings you prepared.
+            </small>
+
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Ingredients / Allergens
+            </label>
+
+            <input
+                id="foodAllergens"
+                type="text"
+                placeholder="e.g. Wheat, milk, peanuts"
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Spice Level
+            </label>
+
+            <select id="foodSpiceLevel">
+                <option>Mild</option>
+                <option>Medium</option>
+                <option>Spicy</option>
+            </select>
 
         </div>
 
@@ -3870,8 +3932,11 @@ if(foods.length === 0){
             providerName:"Sunita Aunty",
             name:"Rajma Rice & 2 Roti",
             description:"Slow-cooked rajma, steamed rice and 2 soft homemade rotis.",
+            allergens:"Wheat (roti)",
+            spiceLevel:"Mild",
+            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
             price:70,
-            quantity:8,
+            quantity:5,
             category:"Lunch",
             image:"https://assets-news-bcdn.dailyhunt.in/cmd/resize/800x600_75/fetchdata20/images/94/bf/4c/94bf4c282c539e20fa341d931e3e22686f3420add23787ec09f951acccb7f8e3.webp"
         },
@@ -3881,8 +3946,11 @@ if(foods.length === 0){
             providerName:"Neha's Home Kitchen",
             name:"Aloo Gobi & 3 Roti",
             description:"Simple ghar ka aloo gobi with 3 fresh rotis.",
+            allergens:"Wheat (roti)",
+            spiceLevel:"Mild",
+            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
             price:60,
-            quantity:10,
+            quantity:5,
             category:"Lunch",
             image:"https://www.fatrainbow.com/wp-content/uploads/2020/09/Instant-Pot-Aloo-Gobi-8-683x1024.jpg"
         },
@@ -3892,8 +3960,11 @@ if(foods.length === 0){
             providerName:"Poonam Ji",
             name:"Dal Rice & Roti",
             description:"Comforting dal, jeera rice and 2 homemade rotis.",
+            allergens:"Wheat (roti)",
+            spiceLevel:"Mild",
+            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
             price:50,
-            quantity:12,
+            quantity:4,
             category:"Lunch",
             image:"https://staticimg.amarujala.com/assets/images/2025/01/21/arhar-dal_42dade02febb9545c15f218dc703627a.jpeg?dpr=2.6&q=70&w=480"
         },
@@ -3903,8 +3974,11 @@ if(foods.length === 0){
             providerName:"Kavita's Kitchen",
             name:"Chole Rice",
             description:"Homestyle chole with steamed rice and a little salad.",
+            allergens:"May contain common spices",
+            spiceLevel:"Medium",
+            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
             price:70,
-            quantity:7,
+            quantity:5,
             category:"Lunch",
             image:"https://upload.wikimedia.org/wikipedia/commons/5/5a/Chole_Chawal.jpg"
         },
@@ -3914,8 +3988,11 @@ if(foods.length === 0){
             providerName:"Renu Aunty",
             name:"Kaddu Sabzi & Roti",
             description:"Light homemade kaddu sabzi with 3 warm rotis.",
+            allergens:"Wheat (roti)",
+            spiceLevel:"Mild",
+            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
             price:50,
-            quantity:9,
+            quantity:4,
             category:"Dinner",
             image:"https://i0.wp.com/beextravegant.com/wp-content/uploads/2022/02/IMG_5464.jpg?resize=576%2C1024&ssl=1"
         }
@@ -3936,7 +4013,7 @@ if(foods.length > 0){
             name:"Rajma Rice & 2 Roti",
             description:"Slow-cooked rajma, steamed rice and 2 soft homemade rotis.",
             price:70,
-            quantity:8,
+            quantity:5,
             category:"Lunch"
         },
         2:{
@@ -3945,7 +4022,7 @@ if(foods.length > 0){
             name:"Aloo Gobi & 3 Roti",
             description:"Simple ghar ka aloo gobi with 3 fresh rotis.",
             price:60,
-            quantity:10,
+            quantity:5,
             category:"Lunch"
         },
         3:{
@@ -3954,7 +4031,7 @@ if(foods.length > 0){
             name:"Dal Rice & Roti",
             description:"Comforting dal, jeera rice and 2 homemade rotis.",
             price:50,
-            quantity:12,
+            quantity:4,
             category:"Lunch"
         }
     };
@@ -3967,7 +4044,7 @@ if(foods.length > 0){
             if(typeof food.quantity !== "number") food.quantity = demoMeals[food.id].quantity;
             changed = true;
         } else if(typeof food.quantity !== "number"){
-            food.quantity = 10;
+            food.quantity = 5;
             changed = true;
         }
     });
@@ -4571,6 +4648,49 @@ function getRatingStars(value){
     return stars;
 }
 
+
+function safetyInfoHTML(food){
+
+    const allergens =
+        food.allergens ||
+        "Ask the cook about ingredients";
+
+    const spice =
+        food.spiceLevel ||
+        "Ask the cook";
+
+    const note =
+        food.safetyNote ||
+        "Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.";
+
+    return `
+        <div class="food-safety-box">
+
+            <div class="food-safety-title">
+                🛡️ Food Information
+            </div>
+
+            <div class="food-safety-row">
+                <span>
+                    🥜 Ingredients/Allergens:
+                    <strong>${safe(allergens)}</strong>
+                </span>
+
+                <span>
+                    🌶️ Spice:
+                    <strong>${safe(spice)}</strong>
+                </span>
+            </div>
+
+            <div class="food-safety-note">
+                ${safe(note)}
+            </div>
+
+        </div>
+    `;
+}
+
+
 function ratingSummaryHTML(foodId){
     const summary = getFoodRatings(foodId);
 
@@ -4862,6 +4982,8 @@ function renderCustomerFoods(){
                         </div>
 
                         ${ratingSummaryHTML(food.id)}
+
+                        ${safetyInfoHTML(food)}
 
                         <div class="food-bottom">
 
@@ -6136,6 +6258,8 @@ function renderProviderFoods(){
 
                         ${ratingSummaryHTML(food.id)}
 
+                        ${safetyInfoHTML(food)}
+
 
                         <div class="food-bottom">
 
@@ -6218,6 +6342,16 @@ function addFood(){
     const category =
         document.getElementById(
             "foodCategory"
+        ).value;
+
+    const allergens =
+        document.getElementById(
+            "foodAllergens"
+        ).value.trim();
+
+    const spiceLevel =
+        document.getElementById(
+            "foodSpiceLevel"
         ).value;
 
 
@@ -6309,7 +6443,17 @@ const imageInput =
                 quantity:
                     quantity,
 
-                category:
+                
+                allergens:
+                    allergens || "Ask the cook about ingredients",
+
+                spiceLevel:
+                    spiceLevel,
+
+                safetyNote:
+                    "Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
+
+category:
                     category,
 
                 image:

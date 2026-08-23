@@ -2231,6 +2231,29 @@ button{
 
 
 /* =====================================================
+   LIVE LOCAL STORAGE SYNC
+===================================================== */
+
+function refreshDatabaseFromStorage(){
+    users = JSON.parse(localStorage.getItem("homeplates_users")) || [];
+    foods = JSON.parse(localStorage.getItem("homeplates_foods")) || [];
+    orders = JSON.parse(localStorage.getItem("homeplates_orders")) || [];
+    ratings = JSON.parse(localStorage.getItem("homeplates_ratings")) || [];
+
+    if(currentUser?.role === "customer"){
+        renderCustomerOrders();
+        customerStats();
+    }else if(currentUser?.role === "provider"){
+        renderProviderOrders();
+        providerStats();
+    }
+}
+
+window.addEventListener("storage", event => {
+    if(event.key && event.key.startsWith("homeplates_")) refreshDatabaseFromStorage();
+});
+
+/* =====================================================
    TOAST
 ===================================================== */
 
@@ -3932,7 +3955,7 @@ let selectedRatingValue = 0;
    DEMO FOOD - ONLY 2 FEATURED HOME MEALS
 ===================================================== */
 
-const DEMO_MEAL_VERSION = "3";
+const DEMO_MEAL_VERSION = "4";
 
 const demoMeals = [
     {
@@ -3964,6 +3987,23 @@ const demoMeals = [
         image: "https://www.fatrainbow.com/wp-content/uploads/2020/09/Instant-Pot-Aloo-Gobi-8-683x1024.jpg"
     }
 ];
+
+/* =====================================================
+   DEMO PROVIDER ACCOUNTS
+   These accounts own the two featured meals so their
+   orders can actually be accepted and delivered.
+===================================================== */
+
+const demoProviders = [
+    { id: "demo-provider-1", name: "Sunita Aunty", email: "sunita@homeplates.demo", password: "sunita123", role: "provider" },
+    { id: "demo-provider-2", name: "Neha's Home Kitchen", email: "neha@homeplates.demo", password: "neha123", role: "provider" }
+];
+
+demoProviders.forEach(demoProvider => {
+    const existing = users.find(user => user.id === demoProvider.id);
+    if(!existing) users.push(demoProvider);
+    else Object.assign(existing, demoProvider);
+});
 
 /*
    Keep meals added by real cooks, but replace the old demo meals
@@ -6053,27 +6093,27 @@ function updateOrder(
                 id
         );
 
-
     if(!order){
-
+        toast("Order not found.");
         return;
     }
 
+    /* Only the provider who owns this order may change it. */
+    if(!currentUser || currentUser.role !== "provider" || order.providerId !== currentUser.id){
+        toast("You are not authorized to update this order.");
+        return;
+    }
 
-    order.status =
-        status;
-
+    order.status = status;
+    order.updated = new Date().toLocaleString();
 
     saveDB();
 
-
     renderProviderOrders();
-
     providerStats();
 
-
     toast(
-        "Order updated successfully!"
+        `Order ${id} is now ${formatStatus(status)}.`
     );
 
 }

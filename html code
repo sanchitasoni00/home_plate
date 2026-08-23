@@ -511,6 +511,14 @@ button{
         var(--border);
 }
 
+
+.btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+    transform:none !important;
+    box-shadow:none !important;
+}
+
 .btn-outline:hover{
 
     transform:
@@ -1779,17 +1787,80 @@ button{
 }
 
 .food-body h3{
-
     margin-bottom:6px;
 }
 
 .food-body p{
-
     color:var(--gray);
-
     font-size:13px;
-
     line-height:1.5;
+}
+
+.food-home-meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin:10px 0 2px;
+    font-size:12px;
+}
+
+.cook-name{
+    color:#555;
+    font-weight:800;
+}
+
+.quantity-badge{
+    padding:5px 9px;
+    border-radius:999px;
+    background:#f7f7f7;
+    color:#555;
+    font-weight:800;
+    white-space:nowrap;
+}
+
+.quantity-badge.low{
+    background:#fff4d6;
+    color:#a16207;
+}
+
+.quantity-badge.out{
+    background:#fee2e2;
+    color:#b91c1c;
+}
+
+.home-style-label{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-top:4px;
+    color:#8a6b5b;
+    font-size:11px;
+    font-weight:800;
+}
+
+.meal-note{
+    margin-top:8px;
+    padding:8px 10px;
+    border-radius:10px;
+    background:#fff8f4;
+    color:#765f53;
+    font-size:12px;
+    line-height:1.45;
+}
+
+.food-bottom{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:14px;
+}
+
+.price{
+    color:var(--orange);
+    font-size:20px;
+    font-weight:900;
 }
 
 .food-bottom{
@@ -3497,7 +3568,7 @@ button{
 
             <input
                 id="foodName"
-                placeholder="Punjabi Thali"
+                placeholder="Rajma Rice & 2 Roti"
             >
 
         </div>
@@ -3511,7 +3582,7 @@ button{
 
             <textarea
                 id="foodDescription"
-                placeholder="Dal, roti, sabzi, rice..."
+                placeholder="Rajma, steamed rice and 2 fresh rotis..."
                 rows="3"
             ></textarea>
 
@@ -3521,14 +3592,31 @@ button{
         <div class="form-group">
 
             <label>
-                Price (₹)
+                Price per serving (₹)
             </label>
 
             <input
                 id="foodPrice"
                 type="number"
-                min="1"
-                placeholder="120"
+                min="20"
+                max="500"
+                placeholder="70"
+            >
+
+        </div>
+
+        <div class="form-group">
+
+            <label>
+                Available Quantity (servings)
+            </label>
+
+            <input
+                id="foodQuantity"
+                type="number"
+                min="0"
+                max="1000"
+                placeholder="10"
             >
 
         </div>
@@ -3775,90 +3863,116 @@ let selectedRatingValue = 0;
 ===================================================== */
 
 if(foods.length === 0){
-
     foods = [
-
         {
             id:1,
-
-            providerId:
-                "demo-provider",
-
-            providerName:
-                "Maa's Kitchen",
-
-            name:
-                "Punjabi Thali",
-
-            description:
-                "Dal, roti, sabzi, rice and salad.",
-
-            price:
-                120,
-
-            category:
-                "Lunch",
-
-            image:
-                ""
+            providerId:"demo-provider-1",
+            providerName:"Sunita Aunty",
+            name:"Rajma Rice & 2 Roti",
+            description:"Slow-cooked rajma, steamed rice and 2 soft homemade rotis.",
+            price:70,
+            quantity:8,
+            category:"Lunch",
+            image:""
         },
-
-
         {
             id:2,
-
-            providerId:
-                "demo-provider",
-
-            providerName:
-                "Home Kitchen",
-
-            name:
-                "Healthy Veg Meal",
-
-            description:
-                "Fresh vegetables, dal and roti.",
-
-            price:
-                100,
-
-            category:
-                "Lunch",
-
-            image:
-                ""
+            providerId:"demo-provider-2",
+            providerName:"Neha's Home Kitchen",
+            name:"Aloo Gobi & 3 Roti",
+            description:"Simple ghar ka aloo gobi with 3 fresh rotis.",
+            price:60,
+            quantity:10,
+            category:"Lunch",
+            image:""
         },
-
-
         {
             id:3,
-
-            providerId:
-                "demo-provider",
-
-            providerName:
-                "Local Chef",
-
-            name:
-                "Special Rice Bowl",
-
-            description:
-                "Rice, vegetables, dal and raita.",
-
-            price:
-                90,
-
-            category:
-                "Lunch",
-
-            image:
-                ""
+            providerId:"demo-provider-3",
+            providerName:"Poonam Ji",
+            name:"Dal Rice & Roti",
+            description:"Comforting dal, jeera rice and 2 homemade rotis.",
+            price:50,
+            quantity:12,
+            category:"Lunch",
+            image:""
+        },
+        {
+            id:4,
+            providerId:"demo-provider-4",
+            providerName:"Kavita's Kitchen",
+            name:"Chole Rice",
+            description:"Homestyle chole with steamed rice and a little salad.",
+            price:70,
+            quantity:7,
+            category:"Lunch",
+            image:""
+        },
+        {
+            id:5,
+            providerId:"demo-provider-5",
+            providerName:"Renu Aunty",
+            name:"Kaddu Sabzi & Roti",
+            description:"Light homemade kaddu sabzi with 3 warm rotis.",
+            price:50,
+            quantity:9,
+            category:"Dinner",
+            image:""
         }
-
     ];
 
     saveDB();
+}
 
+/* =====================================================
+   DEMO FOOD MIGRATION
+   ===================================================== */
+
+if(foods.length > 0){
+    const demoMeals = {
+        1:{
+            providerId:"demo-provider-1",
+            providerName:"Sunita Aunty",
+            name:"Rajma Rice & 2 Roti",
+            description:"Slow-cooked rajma, steamed rice and 2 soft homemade rotis.",
+            price:70,
+            quantity:8,
+            category:"Lunch"
+        },
+        2:{
+            providerId:"demo-provider-2",
+            providerName:"Neha's Home Kitchen",
+            name:"Aloo Gobi & 3 Roti",
+            description:"Simple ghar ka aloo gobi with 3 fresh rotis.",
+            price:60,
+            quantity:10,
+            category:"Lunch"
+        },
+        3:{
+            providerId:"demo-provider-3",
+            providerName:"Poonam Ji",
+            name:"Dal Rice & Roti",
+            description:"Comforting dal, jeera rice and 2 homemade rotis.",
+            price:50,
+            quantity:12,
+            category:"Lunch"
+        }
+    };
+
+    let changed = false;
+
+    foods.forEach(food => {
+        if(demoMeals[food.id] && String(food.providerId || "").startsWith("demo-provider")){
+            Object.assign(food, demoMeals[food.id]);
+            if(typeof food.quantity !== "number") food.quantity = demoMeals[food.id].quantity;
+            changed = true;
+        } else if(typeof food.quantity !== "number"){
+            food.quantity = 10;
+            changed = true;
+        }
+    });
+
+    if(changed) saveDB();
 }
 
 
@@ -3881,6 +3995,11 @@ function saveDB(){
     localStorage.setItem(
         "homeplates_orders",
         JSON.stringify(orders)
+    );
+
+    localStorage.setItem(
+        "homeplates_ratings",
+        JSON.stringify(ratings)
     );
 
 }
@@ -4631,19 +4750,16 @@ function renderCustomerFoods(){
             "customerFoodGrid"
         );
 
-
     const searchInput =
         document.getElementById(
             "foodSearch"
         );
-
 
     const search =
         searchInput
             ? searchInput.value
                 .toLowerCase()
             : "";
-
 
     const filtered =
         foods.filter(
@@ -4653,16 +4769,12 @@ function renderCustomerFoods(){
                     .includes(search)
         );
 
-
     grid.innerHTML = "";
-
 
     if(filtered.length === 0){
 
         grid.innerHTML = `
-
             <div class="empty-state">
-
                 <div class="empty-state-icon">
                     🍱
                 </div>
@@ -4674,36 +4786,43 @@ function renderCustomerFoods(){
                 <p>
                     Try another search.
                 </p>
-
             </div>
-
         `;
 
         return;
     }
 
-
     filtered.forEach(
         (food,index) => {
+
+            const quantity =
+                Number(food.quantity ?? 0);
 
             const imageHTML =
                 food.image
                 ?
-
                 `
                 <img
                     src="${food.image}"
                     alt="${safe(food.name)}"
                 >
                 `
-
                 :
+                `🍲`;
 
-                `🍛`;
+            const quantityClass =
+                quantity <= 0
+                ? "out"
+                : quantity <= 3
+                    ? "low"
+                    : "";
 
+            const quantityText =
+                quantity <= 0
+                ? "Sold out"
+                : `${quantity} servings left`;
 
             grid.innerHTML += `
-
                 <div
                     class="food-card"
                     style="
@@ -4713,11 +4832,8 @@ function renderCustomerFoods(){
                 >
 
                     <div class="food-image">
-
                         ${imageHTML}
-
                     </div>
-
 
                     <div class="food-body">
 
@@ -4728,6 +4844,22 @@ function renderCustomerFoods(){
                         <p>
                             ${safe(food.description)}
                         </p>
+
+                        <div class="food-home-meta">
+
+                            <span class="cook-name">
+                                👩‍🍳 ${safe(food.providerName || "Home Cook")}
+                            </span>
+
+                            <span class="quantity-badge ${quantityClass}">
+                                ${quantityText}
+                            </span>
+
+                        </div>
+
+                        <div class="home-style-label">
+                            🏠 Homemade • Freshly prepared
+                        </div>
 
                         ${ratingSummaryHTML(food.id)}
 
@@ -4743,34 +4875,35 @@ function renderCustomerFoods(){
 
                         </div>
 
-
                         <button
                             class="btn btn-primary"
                             style="
                                 width:100%;
                                 margin-top:14px;
                             "
+                            ${quantity <= 0 ? "disabled style=\"width:100%;margin-top:14px;opacity:.55;cursor:not-allowed;\"" : ""}
                             onclick="
                                 placeOrder(${food.id})
                             "
                         >
-                            Order Now →
+                            ${quantity <= 0 ? "Sold Out" : "Order Now →"}
                         </button>
 
                     </div>
 
                 </div>
-
             `;
-
         }
     );
-
 
     customerStats();
 
 }
 
+
+/* =====================================================
+   PLACE ORDER - OPEN MODAL
+   ===================================================== */
 
 /* =====================================================
    PLACE ORDER - OPEN MODAL
@@ -4795,6 +4928,15 @@ function placeOrder(foodId){
         return;
     }
 
+    if(Number(selectedFood.quantity ?? 0) <= 0){
+
+        toast(
+            "Sorry, this meal is sold out."
+        );
+
+        return;
+    }
+
 
     document.getElementById(
         "selectedFoodName"
@@ -4802,7 +4944,12 @@ function placeOrder(foodId){
 
         selectedFood.name +
         " • ₹" +
-        selectedFood.price;
+        selectedFood.price +
+        " • 👩‍🍳 " +
+        (selectedFood.providerName || "Home Cook") +
+        " • " +
+        Number(selectedFood.quantity ?? 0) +
+        " servings left";
 
 
     document.getElementById(
@@ -4937,6 +5084,9 @@ function confirmOrder(){
         total:
             selectedFood.price,
 
+        quantity:
+            1,
+
         status:
             "PENDING",
 
@@ -4951,6 +5101,11 @@ function confirmOrder(){
         order
     );
 
+    selectedFood.quantity =
+        Math.max(
+            0,
+            Number(selectedFood.quantity ?? 0) - 1
+        );
 
     saveDB();
 
@@ -5194,13 +5349,38 @@ function customerOrderHTML(order){
             </span>
 
 
-            <div class="order-details">
+            <div class="order-details">\
 
-                👨‍🍳 Provider:
+
+                👩‍🍳 Cook:
+
 
                 <strong>
+
+
                     ${safe(order.providerName)}
+
+
                 </strong>
+
+
+                <br>
+
+
+                
+
+
+                🍱 Serving:
+
+
+                <strong>
+
+
+                    ${Number(order.quantity || 1)}
+
+
+                </strong>
+
 
                 <br>
 
@@ -5749,6 +5929,13 @@ function providerOrderHTML(order){
 
                 <br>
 
+                📦 Quantity:
+                <strong>
+                    ${Number(order.quantity || 1)}
+                </strong>
+
+                <br>
+
 
                 💰 Amount:
 
@@ -5925,6 +6112,28 @@ function renderProviderFoods(){
                             ${safe(food.description)}
                         </p>
 
+                        <div class="food-home-meta">
+
+                            <span class="cook-name">
+                                👩‍🍳 ${safe(food.providerName || currentUser.name)}
+                            </span>
+
+                            <span class="quantity-badge ${
+                                Number(food.quantity ?? 0) <= 0
+                                    ? "out"
+                                    : Number(food.quantity ?? 0) <= 3
+                                        ? "low"
+                                        : ""
+                            }">
+                                ${
+                                    Number(food.quantity ?? 0) <= 0
+                                    ? "Sold out"
+                                    : `${Number(food.quantity ?? 0)} servings`
+                                }
+                            </span>
+
+                        </div>
+
                         ${ratingSummaryHTML(food.id)}
 
 
@@ -6012,7 +6221,15 @@ function addFood(){
         ).value;
 
 
-    const imageInput =
+    
+
+    const quantity =
+        Number(
+            document.getElementById(
+                "foodQuantity"
+            ).value
+        );
+const imageInput =
         document.getElementById(
             "foodImage"
         );
@@ -6025,7 +6242,8 @@ function addFood(){
     if(
         !name ||
         !description ||
-        !price
+        !price ||
+        quantity < 0
     ){
 
         toast(
@@ -6086,6 +6304,10 @@ function addFood(){
 
                 price:
                     price,
+
+                
+                quantity:
+                    quantity,
 
                 category:
                     category,
@@ -6196,7 +6418,10 @@ function customerStats(){
     document.getElementById(
         "cMeals"
     ).innerText =
-        foods.length;
+        
+        foods.filter(
+            food => Number(food.quantity ?? 0) > 0
+        ).length;
 
     const customerRatings =
         ratings.filter(

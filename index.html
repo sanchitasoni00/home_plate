@@ -1694,7 +1694,7 @@ button{
     display:grid;
 
     grid-template-columns:
-        repeat(3,1fr);
+        repeat(2,1fr);
 
     gap:18px;
 }
@@ -2503,6 +2503,14 @@ button{
 .rating-order-box h4{margin-bottom:4px}
 .rating-order-box p{color:#777;font-size:12px;margin-bottom:8px}
 .rating-empty{color:#999;font-size:12px}
+
+
+/* HomeMeal featured meals: keep the two cards clean and balanced. */
+@media (max-width: 760px){
+    .food-grid{
+        grid-template-columns:1fr;
+    }
+}
 
 </style>
 
@@ -3921,136 +3929,76 @@ let selectedRatingValue = 0;
 
 
 /* =====================================================
-   DEMO FOOD
+   DEMO FOOD - ONLY 2 FEATURED HOME MEALS
 ===================================================== */
 
-if(foods.length === 0){
-    foods = [
-        {
-            id:1,
-            providerId:"demo-provider-1",
-            providerName:"Sunita Aunty",
-            name:"Rajma Rice & 2 Roti",
-            description:"Slow-cooked rajma, steamed rice and 2 soft homemade rotis.",
-            allergens:"Wheat (roti)",
-            spiceLevel:"Mild",
-            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
-            price:70,
-            quantity:5,
-            category:"Lunch",
-            image:"https://assets-news-bcdn.dailyhunt.in/cmd/resize/800x600_75/fetchdata20/images/94/bf/4c/94bf4c282c539e20fa341d931e3e22686f3420add23787ec09f951acccb7f8e3.webp"
-        },
-        {
-            id:2,
-            providerId:"demo-provider-2",
-            providerName:"Neha's Home Kitchen",
-            name:"Aloo Gobi & 3 Roti",
-            description:"Simple ghar ka aloo gobi with 3 fresh rotis.",
-            allergens:"Wheat (roti)",
-            spiceLevel:"Mild",
-            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
-            price:60,
-            quantity:5,
-            category:"Lunch",
-            image:"https://www.fatrainbow.com/wp-content/uploads/2020/09/Instant-Pot-Aloo-Gobi-8-683x1024.jpg"
-        },
-        {
-            id:3,
-            providerId:"demo-provider-3",
-            providerName:"Poonam Ji",
-            name:"Dal Rice & Roti",
-            description:"Comforting dal, jeera rice and 2 homemade rotis.",
-            allergens:"Wheat (roti)",
-            spiceLevel:"Mild",
-            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
-            price:50,
-            quantity:4,
-            category:"Lunch",
-            image:"https://staticimg.amarujala.com/assets/images/2025/01/21/arhar-dal_42dade02febb9545c15f218dc703627a.jpeg?dpr=2.6&q=70&w=480"
-        },
-        {
-            id:4,
-            providerId:"demo-provider-4",
-            providerName:"Kavita's Kitchen",
-            name:"Chole Rice",
-            description:"Homestyle chole with steamed rice and a little salad.",
-            allergens:"May contain common spices",
-            spiceLevel:"Medium",
-            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
-            price:70,
-            quantity:5,
-            category:"Lunch",
-            image:"https://upload.wikimedia.org/wikipedia/commons/5/5a/Chole_Chawal.jpg"
-        },
-        {
-            id:5,
-            providerId:"demo-provider-5",
-            providerName:"Renu Aunty",
-            name:"Kaddu Sabzi & Roti",
-            description:"Light homemade kaddu sabzi with 3 warm rotis.",
-            allergens:"Wheat (roti)",
-            spiceLevel:"Mild",
-            safetyNote:"Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
-            price:50,
-            quantity:4,
-            category:"Dinner",
-            image:"https://i0.wp.com/beextravegant.com/wp-content/uploads/2022/02/IMG_5464.jpg?resize=576%2C1024&ssl=1"
-        }
-    ];
+const DEMO_MEAL_VERSION = "2";
+
+const demoMeals = [
+    {
+        id: 1,
+        providerId: "demo-provider-1",
+        providerName: "Sunita Aunty",
+        name: "Desi Home-Style Meal",
+        description: "Dal, seasonal sabzi, 2 fresh rotis, rice and salad — simple ghar ka khana.",
+        allergens: "Wheat (roti)",
+        spiceLevel: "Mild",
+        safetyNote: "Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
+        price: 60,
+        quantity: 5,
+        category: "Lunch",
+        image: "https://upload.wikimedia.org/wikipedia/commons/5/5a/Chole_Chawal.jpg"
+    },
+    {
+        id: 2,
+        providerId: "demo-provider-2",
+        providerName: "Neha's Home Kitchen",
+        name: "Simple Ghar Ka Meal",
+        description: "Rajma or chole, rice, 2 rotis and a small serving of salad or pickle.",
+        allergens: "Wheat (roti)",
+        spiceLevel: "Mild",
+        safetyNote: "Prepared in a home kitchen • Ask the cook about ingredients if you have an allergy.",
+        price: 65,
+        quantity: 5,
+        category: "Lunch",
+        image: "https://www.fatrainbow.com/wp-content/uploads/2020/09/Instant-Pot-Aloo-Gobi-8-683x1024.jpg"
+    }
+];
+
+/*
+   Keep meals added by real cooks, but replace the old demo meals
+   with the new two-meal HomeMeal selection. The version flag makes
+   sure existing browser localStorage is updated automatically.
+*/
+
+if(localStorage.getItem("homeplates_demo_meal_version") !== DEMO_MEAL_VERSION){
+
+    foods = foods.filter(
+        food => !String(food.providerId || "").startsWith("demo-provider")
+    );
+
+    foods = demoMeals.concat(foods);
+
+    localStorage.setItem(
+        "homeplates_demo_meal_version",
+        DEMO_MEAL_VERSION
+    );
 
     saveDB();
+
+}else if(foods.length === 0){
+
+    foods = [...demoMeals];
+    saveDB();
+
 }
 
-/* =====================================================
-   DEMO FOOD MIGRATION
-   ===================================================== */
+/* Make sure every food has a usable quantity. */
+foods.forEach(food => {
+    if(typeof food.quantity !== "number") food.quantity = 5;
+});
 
-if(foods.length > 0){
-    const demoMeals = {
-        1:{
-            providerId:"demo-provider-1",
-            providerName:"Sunita Aunty",
-            name:"Rajma Rice & 2 Roti",
-            description:"Slow-cooked rajma, steamed rice and 2 soft homemade rotis.",
-            price:70,
-            quantity:5,
-            category:"Lunch"
-        },
-        2:{
-            providerId:"demo-provider-2",
-            providerName:"Neha's Home Kitchen",
-            name:"Aloo Gobi & 3 Roti",
-            description:"Simple ghar ka aloo gobi with 3 fresh rotis.",
-            price:60,
-            quantity:5,
-            category:"Lunch"
-        },
-        3:{
-            providerId:"demo-provider-3",
-            providerName:"Poonam Ji",
-            name:"Dal Rice & Roti",
-            description:"Comforting dal, jeera rice and 2 homemade rotis.",
-            price:50,
-            quantity:4,
-            category:"Lunch"
-        }
-    };
-
-    let changed = false;
-
-    foods.forEach(food => {
-        if(demoMeals[food.id] && String(food.providerId || "").startsWith("demo-provider")){
-            Object.assign(food, demoMeals[food.id]);
-            if(typeof food.quantity !== "number") food.quantity = demoMeals[food.id].quantity;
-            changed = true;
-        } else if(typeof food.quantity !== "number"){
-            food.quantity = 5;
-            changed = true;
-        }
-    });
-
-    if(changed) saveDB();
-}
+saveDB();
 
 
 /* =====================================================
